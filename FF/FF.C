@@ -59,21 +59,33 @@ bool preciceAdapter::FF::FluidFluid::readConfig(const IOdictionary& adapterConfi
     nameP_ = FFdict.lookupOrDefault<word>("nameP", "p");
     DEBUG(adapterInfo("    pressure field name : " + nameP_));
 
+    // Read the name of the pressureRgh field (if different)
+    namePRgh_ = FFdict.lookupOrDefault<word>("namePRgh", "p_rgh");
+    DEBUG(adapterInfo("    pressureRgh field name : " + namePRgh_));
+
     // Read the name of the temperature field (if different)
     nameT_ = FFdict.lookupOrDefault<word>("nameT", "T");
     DEBUG(adapterInfo("    temperature field name : " + nameT_));
 
-    // Read the name of the phase variable field (if different)
-    nameAlpha_ = FFdict.lookupOrDefault<word>("nameAlpha", "alpha");
-    DEBUG(adapterInfo("    phase variable (alpha) field name : " + nameAlpha_));
+    // Read the name of the eddy viscosity field (if different)
+    nameNut_ = FFdict.lookupOrDefault<word>("nameNut", "nut");
+    DEBUG(adapterInfo("    eddy viscosity field name : " + nameNut_));
 
-    // Read the name of the face flux field (if different)
-    namePhi_ = FFdict.lookupOrDefault<word>("namePhi", "phi");
-    DEBUG(adapterInfo("    face flux field name : " + namePhi_));
+    // Read the name of the kinematic thermal conductivity field (if different)
+    nameKappat_ = FFdict.lookupOrDefault<word>("nameKappat", "kappat");
+    DEBUG(adapterInfo("    kinematic thermal conductivity field name : " + nameKappat_));
 
-    // Check whether to enable flux correction for velocity
-    fluxCorrection_ = FFdict.lookupOrDefault<bool>("fluxCorrection", false);
-    DEBUG(adapterInfo("    flux correction of velocity is set to : " + std::to_string(fluxCorrection_)));
+    // Read the name of the turbulent kinetic energy field (if different)
+    nameK_ = FFdict.lookupOrDefault<word>("nameK", "k");
+    DEBUG(adapterInfo("    turbulent kinetic energy field name : " + nameK_));
+
+    // Read the name of the turbulent dissipation rate field (if different)
+    nameEpsilon_ = FFdict.lookupOrDefault<word>("nameEpsilon", "epsilon");
+    DEBUG(adapterInfo("    turbulent dissipation rate field name : " + nameEpsilon_));
+
+    // Read the name of the specific turbulent dissipation rate field (if different)
+    nameOmega_ = FFdict.lookupOrDefault<word>("nameOmega", "omega");
+    DEBUG(adapterInfo("    turbulent specific dissipation rate field name : " + nameOmega_));
 
     return true;
 }
@@ -85,20 +97,32 @@ std::string preciceAdapter::FF::FluidFluid::determineSolverType()
 
     std::string solverType = "unknown";
 
-    dimensionSet pressureDimensionsCompressible(1, -1, -2, 0, 0, 0, 0);
-    dimensionSet pressureDimensionsIncompressible(0, 2, -2, 0, 0, 0, 0);
+    // Dimensions: pressure or pressureRgh
+    dimensionSet dimensionsCompressible(1, -1, -2, 0, 0, 0, 0);
+    dimensionSet dimensionsIncompressible(0, 2, -2, 0, 0, 0, 0);
 
     if (mesh_.foundObject<volScalarField>("p"))
     {
         const volScalarField& p_ = mesh_.lookupObject<volScalarField>("p");
 
-        if (p_.dimensions() == pressureDimensionsCompressible)
+        if (p_.dimensions() == dimensionsCompressible)
             solverType = "compressible";
-        else if (p_.dimensions() == pressureDimensionsIncompressible)
+        else if (p_.dimensions() == dimensionsIncompressible)
             solverType = "incompressible";
-        // TODO: Add special case for multiphase solvers.
-        // Currently, interFoam is misclassified as "compressible".
     }
+
+    else if (mesh_.foundObject<volScalarField>("p_rgh"))
+    {
+        const volScalarField& pRgh_ = mesh_.lookupObject<volScalarField>("p_rgh");
+
+        if (pRgh_.dimensions() == dimensionsCompressible)
+            solverType = "compressible";
+        else if (pRgh_.dimensions() == dimensionsIncompressible)
+            solverType = "incompressible";
+    }
+
+    // TODO: Add special case for multiphase solvers.
+    // Currently, interFoam is misclassified as "compressible".
 
     if (solverType == "unknown")
         adapterInfo("Failed to determine the solver type. "
@@ -128,9 +152,10 @@ bool preciceAdapter::FF::FluidFluid::addWriters(std::string dataName, Interface*
     {
         interface->addCouplingDataWriter(
             dataName,
-            new Velocity(mesh_, nameU_, namePhi_, fluxCorrection_));
+            new Velocity(mesh_, nameU_));
         DEBUG(adapterInfo("Added writer: Velocity."));
     }
+
     else if (dataName.find("PressureGradient") == 0)
     {
         interface->addCouplingDataWriter(
@@ -145,41 +170,112 @@ bool preciceAdapter::FF::FluidFluid::addWriters(std::string dataName, Interface*
             new Pressure(mesh_, nameP_));
         DEBUG(adapterInfo("Added writer: Pressure."));
     }
-    else if (dataName.find("FlowTemperatureGradient") == 0)
+
+    else if (dataName.find("PressureRghGradient") == 0)
+    {
+        interface->addCouplingDataWriter(
+            dataName,
+            new PressureRghGradient(mesh_, namePRgh_));
+        DEBUG(adapterInfo("Added writer: PressureRgh Gradient."));
+    }
+    else if (dataName.find("PressureRgh") == 0)
+    {
+        interface->addCouplingDataWriter(
+            dataName,
+            new PressureRgh(mesh_, namePRgh_));
+        DEBUG(adapterInfo("Added writer: PressureRgh."));
+    }
+
+    else if (dataName.find("TemperatureGradient") == 0)
     {
         interface->addCouplingDataWriter(
             dataName,
             new TemperatureGradient(mesh_, nameT_));
-        DEBUG(adapterInfo("Added writer: Flow Temperature Gradient."));
+        DEBUG(adapterInfo("Added writer: Temperature Gradient."));
     }
-    else if (dataName.find("FlowTemperature") == 0)
+    else if (dataName.find("Temperature") == 0)
     {
         interface->addCouplingDataWriter(
             dataName,
             new Temperature(mesh_, nameT_));
-        DEBUG(adapterInfo("Added writer: Flow Temperature."));
+        DEBUG(adapterInfo("Added writer: Temperature."));
     }
-    else if (dataName.find("AlphaGradient") == 0)
+
+    else if (dataName.find("EddyViscosityGradient") == 0)
     {
         interface->addCouplingDataWriter(
             dataName,
-            new AlphaGradient(mesh_, nameAlpha_));
-        DEBUG(adapterInfo("Added writer: Alpha Gradient."));
+            new EddyViscosityGradient(mesh_, nameNut_));
+        DEBUG(adapterInfo("Added writer: Eddy Viscosity Gradient."));
     }
-    else if (dataName.find("Alpha") == 0)
+    else if (dataName.find("EddyViscosity") == 0)
     {
         interface->addCouplingDataWriter(
             dataName,
-            new Alpha(mesh_, nameAlpha_));
-        DEBUG(adapterInfo("Added writer: Alpha."));
+            new EddyViscosity(mesh_, nameNut_));
+        DEBUG(adapterInfo("Added writer: Eddy Viscosity."));
     }
-    else if (dataName.find("Phi") == 0)
+
+    else if (dataName.find("KinematicThermalConductivityGradient") == 0)
     {
         interface->addCouplingDataWriter(
             dataName,
-            new Phi(mesh_, namePhi_));
-        DEBUG(adapterInfo("Added writer: Phi."));
+            new KinematicThermalConductivityGradient(mesh_, nameKappat_));
+        DEBUG(adapterInfo("Added writer: Kinematic Thermal Conductivity Gradient."));
     }
+    else if (dataName.find("KinematicThermalConductivity") == 0)
+    {
+        interface->addCouplingDataWriter(
+            dataName,
+            new KinematicThermalConductivity(mesh_, nameKappat_));
+        DEBUG(adapterInfo("Added writer: Kinematic Thermal Conductivity."));
+    }
+
+    else if (dataName.find("TKEGradient") == 0)
+    {
+        interface->addCouplingDataWriter(
+            dataName,
+            new TKEGradient(mesh_, nameK_));
+        DEBUG(adapterInfo("Added writer: TKE Gradient."));
+    }
+    else if (dataName.find("TKE") == 0)
+    {
+        interface->addCouplingDataWriter(
+            dataName,
+            new TKE(mesh_, nameK_));
+        DEBUG(adapterInfo("Added writer: TKE."));
+    }
+
+    else if (dataName.find("TurbulentDissipationRateGradient") == 0)
+    {
+        interface->addCouplingDataWriter(
+            dataName,
+            new TurbulentDissipationRateGradient(mesh_, nameEpsilon_));
+        DEBUG(adapterInfo("Added writer: Turbulent Dissipation Rate Gradient."));
+    }
+    else if (dataName.find("TurbulentDissipationRate") == 0)
+    {
+        interface->addCouplingDataWriter(
+            dataName,
+            new TurbulentDissipationRate(mesh_, nameEpsilon_));
+        DEBUG(adapterInfo("Added writer: Turbulent Dissipation Rate."));
+    }
+
+    else if (dataName.find("TurbulentSpecificDissipationRateGradient") == 0)
+    {
+        interface->addCouplingDataWriter(
+            dataName,
+            new TurbulentSpecificDissipationRateGradient(mesh_, nameOmega_));
+        DEBUG(adapterInfo("Added writer: Turbulent Specific Dissipation Rate Gradient."));
+    }
+    else if (dataName.find("TurbulentSpecificDissipationRate") == 0)
+    {
+        interface->addCouplingDataWriter(
+            dataName,
+            new TurbulentSpecificDissipationRate(mesh_, nameOmega_));
+        DEBUG(adapterInfo("Added writer: Turbulent Specific Dissipation Rate."));
+    }
+
     else
     {
         found = false;
@@ -209,9 +305,10 @@ bool preciceAdapter::FF::FluidFluid::addReaders(std::string dataName, Interface*
     {
         interface->addCouplingDataReader(
             dataName,
-            new Velocity(mesh_, nameU_, namePhi_));
+            new Velocity(mesh_, nameU_));
         DEBUG(adapterInfo("Added reader: Velocity."));
     }
+
     else if (dataName.find("PressureGradient") == 0)
     {
         interface->addCouplingDataReader(
@@ -226,41 +323,112 @@ bool preciceAdapter::FF::FluidFluid::addReaders(std::string dataName, Interface*
             new Pressure(mesh_, nameP_));
         DEBUG(adapterInfo("Added reader: Pressure."));
     }
-    else if (dataName.find("FlowTemperatureGradient") == 0)
+
+    else if (dataName.find("PressureRghGradient") == 0)
+    {
+        interface->addCouplingDataReader(
+            dataName,
+            new PressureRghGradient(mesh_, namePRgh_));
+        DEBUG(adapterInfo("Added reader: PressureRgh Gradient."));
+    }
+    else if (dataName.find("PressureRgh") == 0)
+    {
+        interface->addCouplingDataReader(
+            dataName,
+            new PressureRgh(mesh_, namePRgh_));
+        DEBUG(adapterInfo("Added reader: PressureRgh."));
+    }
+
+    else if (dataName.find("TemperatureGradient") == 0)
     {
         interface->addCouplingDataReader(
             dataName,
             new TemperatureGradient(mesh_, nameT_));
-        DEBUG(adapterInfo("Added reader: Flow Temperature Gradient."));
+        DEBUG(adapterInfo("Added reader: Temperature Gradient."));
     }
-    else if (dataName.find("FlowTemperature") == 0)
+    else if (dataName.find("Temperature") == 0)
     {
         interface->addCouplingDataReader(
             dataName,
             new Temperature(mesh_, nameT_));
-        DEBUG(adapterInfo("Added reader: Flow Temperature."));
+        DEBUG(adapterInfo("Added reader: Temperature."));
     }
-    else if (dataName.find("AlphaGradient") == 0)
+
+    else if (dataName.find("EddyViscosityGradient") == 0)
     {
         interface->addCouplingDataReader(
             dataName,
-            new AlphaGradient(mesh_, nameAlpha_));
-        DEBUG(adapterInfo("Added reader: Alpha Gradient."));
+            new EddyViscosityGradient(mesh_, nameNut_));
+        DEBUG(adapterInfo("Added reader: Eddy Viscosity Gradient."));
     }
-    else if (dataName.find("Alpha") == 0)
+    else if (dataName.find("EddyViscosity") == 0)
     {
         interface->addCouplingDataReader(
             dataName,
-            new Alpha(mesh_, nameAlpha_));
-        DEBUG(adapterInfo("Added reader: Alpha."));
+            new EddyViscosity(mesh_, nameNut_));
+        DEBUG(adapterInfo("Added reader: Eddy Viscosity."));
     }
-    else if (dataName.find("Phi") == 0)
+
+    else if (dataName.find("KinematicThermalConductivityGradient") == 0)
     {
         interface->addCouplingDataReader(
             dataName,
-            new Phi(mesh_, namePhi_));
-        DEBUG(adapterInfo("Added reader: Phi."));
+            new KinematicThermalConductivityGradient(mesh_, nameKappat_));
+        DEBUG(adapterInfo("Added reader: Kinematic Thermal Conductivity Gradient."));
     }
+    else if (dataName.find("KinematicThermalConductivity") == 0)
+    {
+        interface->addCouplingDataReader(
+            dataName,
+            new KinematicThermalConductivity(mesh_, nameKappat_));
+        DEBUG(adapterInfo("Added reader: Kinematic Thermal Conductivity."));
+    }
+
+    else if (dataName.find("TKEGradient") == 0)
+    {
+        interface->addCouplingDataReader(
+            dataName,
+            new TKEGradient(mesh_, nameK_));
+        DEBUG(adapterInfo("Added reader: TKE Gradient."));
+    }
+    else if (dataName.find("TKE") == 0)
+    {
+        interface->addCouplingDataReader(
+            dataName,
+            new TKE(mesh_, nameK_));
+        DEBUG(adapterInfo("Added reader: TKE."));
+    }
+
+    else if (dataName.find("TurbulentDissipationRateGradient") == 0)
+    {
+        interface->addCouplingDataReader(
+            dataName,
+            new TurbulentDissipationRateGradient(mesh_, nameEpsilon_));
+        DEBUG(adapterInfo("Added reader: Turbulent Dissipation Rate Gradient."));
+    }
+    else if (dataName.find("TurbulentDissipationRate") == 0)
+    {
+        interface->addCouplingDataReader(
+            dataName,
+            new TurbulentDissipationRate(mesh_, nameEpsilon_));
+        DEBUG(adapterInfo("Added reader: Turbulent Dissipation Rate."));
+    }
+
+    else if (dataName.find("TurbulentSpecificDissipationRateGradient") == 0)
+    {
+        interface->addCouplingDataReader(
+            dataName,
+            new TurbulentSpecificDissipationRateGradient(mesh_, nameOmega_));
+        DEBUG(adapterInfo("Added reader: Turbulent Specific Dissipation Rate Gradient."));
+    }
+    else if (dataName.find("TurbulentSpecificDissipationRate") == 0)
+    {
+        interface->addCouplingDataReader(
+            dataName,
+            new TurbulentSpecificDissipationRate(mesh_, nameOmega_));
+        DEBUG(adapterInfo("Added reader: Turbulent Specific Dissipation Rate."));
+    }
+
     else
     {
         found = false;

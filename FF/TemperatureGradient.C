@@ -1,5 +1,4 @@
 #include "TemperatureGradient.H"
-#include "mixedFvPatchFields.H"
 
 using namespace Foam;
 
@@ -13,7 +12,7 @@ preciceAdapter::FF::TemperatureGradient::TemperatureGradient(
     dataType_ = scalar;
 }
 
-std::size_t preciceAdapter::FF::TemperatureGradient::write(double* buffer, bool meshConnectivity, const unsigned int dim)
+void preciceAdapter::FF::TemperatureGradient::write(double* buffer, bool meshConnectivity, const unsigned int dim)
 {
     int bufferIndex = 0;
 
@@ -22,19 +21,17 @@ std::size_t preciceAdapter::FF::TemperatureGradient::write(double* buffer, bool 
     {
         int patchID = patchIDs_.at(j);
 
-        // Get the Temperature gradient boundary patch
+        // Get the temperature gradient boundary patch
         const scalarField gradientPatch((T_->boundaryFieldRef()[patchID])
                                             .snGrad());
 
         // For every cell of the patch
         forAll(gradientPatch, i)
         {
-            // Copy the Temperature gradient into the buffer
-            buffer[bufferIndex++] =
-                gradientPatch[i];
+            // Copy the temperature gradient into the buffer
+            buffer[bufferIndex++] = -gradientPatch[i];
         }
     }
-    return bufferIndex;
 }
 
 void preciceAdapter::FF::TemperatureGradient::read(double* buffer, const unsigned int dim)
@@ -46,7 +43,7 @@ void preciceAdapter::FF::TemperatureGradient::read(double* buffer, const unsigne
     {
         int patchID = patchIDs_.at(j);
 
-        // Get the Temperature gradient boundary patch
+        // Get the temperature gradient boundary patch
         scalarField& gradientPatch =
             refCast<fixedGradientFvPatchScalarField>(
                 T_->boundaryFieldRef()[patchID])
@@ -55,9 +52,8 @@ void preciceAdapter::FF::TemperatureGradient::read(double* buffer, const unsigne
         // For every cell of the patch
         forAll(gradientPatch, i)
         {
-            // Set the Temperature gradient as the buffer value
-            gradientPatch[i] =
-                -buffer[bufferIndex++];
+            // Set the temperature gradient as the buffer value
+            gradientPatch[i] = buffer[bufferIndex++];
         }
     }
 }

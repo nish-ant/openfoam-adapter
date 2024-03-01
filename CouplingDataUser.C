@@ -14,24 +14,21 @@ bool preciceAdapter::CouplingDataUser::hasVectorData()
     return dataType_ == vector;
 }
 
-void preciceAdapter::CouplingDataUser::setDataName(std::string dataName)
+void preciceAdapter::CouplingDataUser::setDataID(int dataID)
 {
-    dataName_ = std::move(dataName);
+    dataID_ = dataID;
+
+    return;
 }
 
-const std::string& preciceAdapter::CouplingDataUser::dataName()
+int preciceAdapter::CouplingDataUser::dataID()
 {
-    return dataName_;
+    return dataID_;
 }
 
 void preciceAdapter::CouplingDataUser::setPatchIDs(std::vector<int> patchIDs)
 {
     patchIDs_ = patchIDs;
-}
-
-void preciceAdapter::CouplingDataUser::setCellSetNames(std::vector<std::string> cellSetNames)
-{
-    cellSetNames_ = cellSetNames;
 }
 
 void preciceAdapter::CouplingDataUser::setLocationsType(LocationType locationsType)
@@ -48,8 +45,6 @@ void preciceAdapter::CouplingDataUser::checkDataLocation(const bool meshConnecti
             location = "faceCenters";
         else if (locationType_ == LocationType::faceNodes)
             location = "faceNodes";
-        else if (locationType_ == LocationType::volumeCenters)
-            location = "volumeCenters";
 
         adapterInfo("\"locations = " + location + "\" is not supported for the data \""
                         + getDataName() + "\". Please select a different "

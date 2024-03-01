@@ -1,5 +1,4 @@
 #include "VelocityGradient.H"
-#include "coupledVelocityFvPatchField.H"
 
 using namespace Foam;
 
@@ -13,7 +12,7 @@ preciceAdapter::FF::VelocityGradient::VelocityGradient(
     dataType_ = vector;
 }
 
-std::size_t preciceAdapter::FF::VelocityGradient::write(double* buffer, bool meshConnectivity, const unsigned int dim)
+void preciceAdapter::FF::VelocityGradient::write(double* buffer, bool meshConnectivity, const unsigned int dim)
 {
     int bufferIndex = 0;
 
@@ -46,7 +45,6 @@ std::size_t preciceAdapter::FF::VelocityGradient::write(double* buffer, bool mes
             }
         }
     }
-    return bufferIndex;
 }
 
 void preciceAdapter::FF::VelocityGradient::read(double* buffer, const unsigned int dim)
@@ -59,21 +57,10 @@ void preciceAdapter::FF::VelocityGradient::read(double* buffer, const unsigned i
         int patchID = patchIDs_.at(j);
 
         // Get the velocity gradient boundary patch
-        vectorField* gradientPatchPtr;
-        if (isA<coupledVelocityFvPatchField>(U_->boundaryFieldRef()[patchID]))
-        {
-            gradientPatchPtr = &refCast<coupledVelocityFvPatchField>(
-                                    U_->boundaryFieldRef()[patchID])
-                                    .refGrad();
-        }
-        else
-        {
-            gradientPatchPtr = &refCast<fixedGradientFvPatchVectorField>(
-                                    U_->boundaryFieldRef()[patchID])
-                                    .gradient();
-        }
-        vectorField& gradientPatch = *gradientPatchPtr;
-
+        vectorField& gradientPatch =
+            refCast<fixedGradientFvPatchVectorField>(
+                U_->boundaryFieldRef()[patchID])
+                .gradient();
 
         // For every cell of the patch
         forAll(gradientPatch, i)

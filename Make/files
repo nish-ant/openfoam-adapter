@@ -4,9 +4,26 @@ Interface.C
 
 CouplingDataUser.C
 
-CHT/ModuleCHT.C
-FSI/ModuleFSI.C
-FF/ModuleFF.C
+FF/FF.C
+FF/Velocity.C
+FF/VelocityGradient.C
+FF/Pressure.C
+FF/PressureGradient.C
+FF/PressureRgh.C
+FF/PressureRghGradient.C
+FF/Temperature.C
+FF/TemperatureGradient.C
+FF/EddyViscosity.C
+FF/EddyViscosityGradient.C
+FF/KinematicThermalConductivity.C
+FF/KinematicThermalConductivityGradient.C
+FF/TKE.C
+FF/TKEGradient.C
+FF/TurbulentDissipationRate.C
+FF/TurbulentDissipationRateGradient.C
+FF/TurbulentSpecificDissipationRate.C
+FF/TurbulentSpecificDissipationRateGradient.C
+
 
 Adapter.C
 

@@ -3,26 +3,26 @@
 
 #include "Interface.H"
 
-// Conjugate Heat Transfer module
-#include "CHT/CHT.H"
+//- Conjugate Heat Transfer module
+// #include "CHT/CHT.H"
 
-// Fluid-Structure Interaction module
-#include "FSI/FSI.H"
+//- Fluid-Structure Interaction module
+// #include "FSI/FSI.H"
 
-// Fluid-Fluid module
+//- Fluid-Fluid module
 #include "FF/FF.H"
 
-// NOTE: If you want to couple a new variable, include your module's header here.
-// You also need to include it in the Make/files file.
-// In case you use additional OpenFOAM symbols, you may also need to specify
-// the respective libraries in the Make/options.
+//- NOTE: If you want to couple a new variable, include your module's header here.
+//- You also need to include it in the Make/files file.
+//- In case you use additional OpenFOAM symbols, you may also need to specify
+//- the respective libraries in the Make/options.
 
-// OpenFOAM header files
+//- OpenFOAM header files
 #include "Time.H"
 #include "fvMesh.H"
 
-// preCICE Solver Interface
-#include <precice/precice.hpp>
+//- preCICE Solver Interface
+#include "precice/SolverInterface.hpp"
 
 namespace preciceAdapter
 {
@@ -32,16 +32,15 @@ class Adapter
 
 private:
     //- Structure of the configuration of each coupling interface.
-    //  Every interface needs to know the coupling mesh, the OpenFOAM
-    //  patches that consist the coupling surface and the kinds
-    //  of data that are exchanged.
+    //-  Every interface needs to know the coupling mesh, the OpenFOAM
+    //-  patches that consist the coupling surface and the kinds
+    //-  of data that are exchanged.
     struct InterfaceConfig
     {
         std::string meshName;
         std::string locationsType;
         bool meshConnectivity;
         std::vector<std::string> patchNames;
-        std::vector<std::string> cellSetNames;
         std::vector<std::string> writeData;
         std::vector<std::string> readData;
     };
@@ -55,6 +54,7 @@ private:
     clockValue timeInPreciceConstruct_;
     clockValue timeInMeshSetup_;
     clockValue timeInInitialize_;
+    clockValue timeInInitializeData_;
     clockValue timeInCheckpointingSetup_;
     clockValue timeInWrite_;
     clockValue timeInAdvance_;
@@ -71,7 +71,7 @@ private:
     //- OpenFOAM fvMesh object
     const Foam::fvMesh& mesh_;
 
-    // Configuration parameters used in the Adapter
+    //- Configuration parameters used in the Adapter
 
     //- Remember if there were errors in the read() method
     bool errorsInConfigure = false;
@@ -106,23 +106,23 @@ private:
     std::vector<Interface*> interfaces_;
 
     //- preCICE solver interface
-    precice::Participant* precice_ = nullptr;
+    precice::SolverInterface* precice_ = NULL;
 
     //- preCICE solver interface initialized
     bool preciceInitialized_ = false;
 
     //- Conjugate Heat Transfer module object
-    CHT::ConjugateHeatTransfer* CHT_ = NULL;
+    // CHT::ConjugateHeatTransfer* CHT_ = NULL;
 
     //- Fluid-Structure Interaction module object
-    FSI::FluidStructureInteraction* FSI_ = NULL;
+    // FSI::FluidStructureInteraction* FSI_ = NULL;
 
     //- Fluid-Fluid module object
     FF::FluidFluid* FF_ = NULL;
 
-    // NOTE: Add here a pointer for your new module object
+    //- NOTE: Add here a pointer for your new module object
 
-    // Timesteps
+    //- Timesteps
 
     //- Timestep dictated by preCICE
     double timestepPrecice_;
@@ -133,7 +133,7 @@ private:
     //- Stored (fixed) timestep
     double timestepStored_;
 
-    // Checkpointing
+    //- Checkpointing
 
     //- Checkpointed time (value)
     Foam::scalar couplingIterationTimeValue_;
@@ -146,14 +146,14 @@ private:
     Foam::pointField oldMeshPoints_;
     bool meshCheckPointed = false;
 
-    // TODO: Currently unused, see storeMeshPoints().
+    //- TODO: Currently unused, see storeMeshPoints().
     //- Checkpointed mesh volume
     // bool oldVolsStored = false;
     // Foam::volScalarField::Internal * oldVols_;
     // Foam::volScalarField::Internal * oldOldVols_;
     // int curTimeIndex_ = 0;
 
-    // Vectors of pointers to the checkpointed mesh fields and their copies
+    //- Vectors of pointers to the checkpointed mesh fields and their copies
 
     //- Checkpointed surfaceScalarField mesh fields
     std::vector<Foam::surfaceScalarField*> meshSurfaceScalarFields_;
@@ -173,14 +173,14 @@ private:
     //- Checkpointed volVectorField mesh fields (copies)
     std::vector<Foam::volVectorField*> meshVolVectorFieldCopies_;
 
-    // TODO checkpoint for the V0 (Old volume) and V00 (Old-Old volume) fields.
+    //- TODO checkpoint for the V0 (Old volume) and V00 (Old-Old volume) fields.
     //- Checkpointed volScalarField mesh fields
     std::vector<Foam::volScalarField::Internal*> volScalarInternalFields_;
 
     //- Checkpointed volScalarField mesh fields (copies)
     std::vector<Foam::volScalarField::Internal*> volScalarInternalFieldCopies_;
 
-    // Vectors of pointers to the checkpointed fields and their copies
+    //- Vectors of pointers to the checkpointed fields and their copies
 
     //- Checkpointed volScalarField fields
     std::vector<Foam::volScalarField*> volScalarFields_;
@@ -242,10 +242,9 @@ private:
     //- Checkpointed volSymmTensorField fields (copies)
     std::vector<Foam::volSymmTensorField*> volSymmTensorFieldCopies_;
 
+    //- NOTE: Declare additional vectors for any other types required.
 
-    // NOTE: Declare additional vectors for any other types required.
-
-    // Configuration
+    //- Configuration
 
     //- Read the adapter's configuration file
     bool configFileRead();
@@ -253,7 +252,7 @@ private:
     //- Check the adapter's configuration file
     bool configFileCheck(const std::string adapterConfigFileName);
 
-    // Methods communicating with preCICE
+    //- Methods communicating with preCICE
 
     //- Initialize preCICE and exchange the first data
     void initialize();
@@ -265,14 +264,13 @@ private:
     void advance();
 
     //- Read the coupling data at each interface
-    void readCouplingData(double relativeReadTime);
+    void readCouplingData();
 
     //- Write the coupling data at each interface
     void writeCouplingData();
 
     //- Adjust the timestep of the solver according to preCICE
-    // and read data associated to the calculated time step length
-    void adjustSolverTimeStepAndReadData();
+    void adjustSolverTimeStep();
 
     //- Determine if the coupling is still happening
     bool isCouplingOngoing();
@@ -281,12 +279,18 @@ private:
     bool isCouplingTimeWindowComplete();
 
     //- Determine if a checkpoint must be read
-    bool requiresReadingCheckpoint();
+    bool isReadCheckpointRequired();
 
     //- Determine if a checkpoint must be written
-    bool requiresWritingCheckpoint();
+    bool isWriteCheckpointRequired();
 
-    // Methods for checkpointing
+    //- Tell preCICE that the checkpoint has been read
+    void fulfilledReadCheckpoint();
+
+    //- Tell preCICE that the checkpoint has been written
+    void fulfilledWriteCheckpoint();
+
+    //- Methods for checkpointing
 
     //- Configure the mesh checkpointing
     void setupMeshCheckpointing();
@@ -309,7 +313,7 @@ private:
     //- Restore the locations of the mesh points
     void reloadMeshPoints();
 
-    // Add mesh checkpoint fields, depending on the type
+    //- Add mesh checkpoint fields, depending on the type
     //- Add a surfaceScalarField mesh field
     void addMeshCheckpointField(surfaceScalarField& field);
 
@@ -319,12 +323,12 @@ private:
     //- Add a volVectorField mesh field
     void addMeshCheckpointField(volVectorField& field);
 
-    // TODO V0 and V00 checkpointed field.
+    //- TODO V0 and V00 checkpointed field.
     //- Add the V0 and V00 checkpoint fields
     void addVolCheckpointField(volScalarField::Internal& field);
-    // void addVolCheckpointFieldBuffer(volScalarField::Internal & field);
+    //- void addVolCheckpointFieldBuffer(volScalarField::Internal & field);
 
-    // Add checkpoint fields, depending on the type
+    //- Add checkpoint fields, depending on the type
 
     //- Add a volScalarField to checkpoint
     void addCheckpointField(volScalarField* field);
@@ -344,8 +348,8 @@ private:
     //- Add a pointVectorField to checkpoint
     void addCheckpointField(pointVectorField* field);
 
-    // NOTE: Add here methods to add other object types to checkpoint,
-    // if needed.
+    //- NOTE: Add here methods to add other object types to checkpoint,
+    //- if needed.
 
     //- Add a volTensorField to checkpoint
     void addCheckpointField(volTensorField* field);
@@ -371,7 +375,7 @@ private:
     //- Write the checkpoint - store the fields and time
     void writeCheckpoint();
 
-    // TODO Probably these can be included to the mesh checkpoints.
+    //- TODO Probably these can be included to the mesh checkpoints.
     //- Read the volume checkpoint - restore the mesh volume fields
     void readVolCheckpoint();
 
@@ -379,11 +383,11 @@ private:
     void writeVolCheckpoint();
 
     //- Destroy the preCICE interface and delete the allocated
-    //  memory in a proper way. Called by the destructor.
+    //-  memory in a proper way. Called by the destructor.
     void teardown();
 
 public:
-    // Methods called by the functionObject
+    //- Methods called by the functionObject
 
     //- Constructor
     Adapter(const Foam::Time& runTime, const Foam::fvMesh& mesh);
@@ -394,8 +398,8 @@ public:
     //- Called by the functionObject's execute()
     void execute();
 
-    //- Called by the functionObject's adjustTimeStep()
-    void adjustTimeStep();
+    //- Called by the functionObject's setTimeStep()
+    void setTimeStep();
 
     //- Called by the functionObject's end()
     void end();

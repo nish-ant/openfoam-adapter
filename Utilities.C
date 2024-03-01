@@ -6,14 +6,14 @@ void adapterInfo(const std::string message, const std::string level)
 {
     if (level.compare("info") == 0)
     {
-        // Prepend the message with a string
+        //- Prepend the message with a string
         Info << INFO_STR_ADAPTER
              << message.c_str()
              << nl;
     }
     else if (level.compare("warning") == 0)
     {
-        // Produce a warning message with cyan header
+        //- Produce a warning message with cyan header
         WarningInFunction
             << "\033[36m" // cyan color
             << "Warning in the preCICE adapter: "
@@ -25,10 +25,10 @@ void adapterInfo(const std::string message, const std::string level)
     }
     else if (level.compare("error") == 0)
     {
-        // Produce an error message with red header
-        // and exit the functionObject.
-        // It will also exit the simulation, unless it
-        // is called inside the functionObject's read().
+        //- Produce an error message with red header
+        //- and exit the functionObject.
+        //- It will also exit the simulation, unless it
+        //- is called inside the functionObject's read().
         FatalErrorInFunction
             << "\033[31m" // red color
             << "Error in the preCICE adapter: "
@@ -40,13 +40,13 @@ void adapterInfo(const std::string message, const std::string level)
     }
     else if (level.compare("error-deferred") == 0)
     {
-        // Produce an warning message with red header.
-        // OpenFOAM degrades errors inside read()
-        // to warnings, stops the function object, but does
-        // not exit. We throw a warning which is described
-        // as an error, so that OpenFOAM does not exit,
-        // but the user still sees that this is the actual
-        // problem. We catch these errors and exit later.
+        //- Produce an warning message with red header.
+        //- OpenFOAM degrades errors inside read()
+        //- to warnings, stops the function object, but does
+        //- not exit. We throw a warning which is described
+        //- as an error, so that OpenFOAM does not exit,
+        //- but the user still sees that this is the actual
+        //- problem. We catch these errors and exit later.
         WarningInFunction
             << "\033[31m" // red color
             << "Error (deferred - will exit later) in the preCICE adapter: "

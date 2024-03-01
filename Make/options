@@ -1,8 +1,10 @@
 EXE_INC = \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
     -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/sampling/lnInclude \
     -I$(LIB_SRC)/transportModels/ \
     -I$(LIB_SRC)/transportModels/incompressible/lnInclude \
+    -I$(LIB_SRC)/transportModels/incompressible/singlePhaseTransportModel \
     -I$(LIB_SRC)/transportModels/compressible/lnInclude \
     -I$(LIB_SRC)/transportModels/twoPhaseMixture/lnInclude \
     -I$(LIB_SRC)/transportModels/interfaceProperties/lnInclude \
@@ -12,15 +14,28 @@ EXE_INC = \
     -I$(LIB_SRC)/TurbulenceModels/compressible/lnInclude \
     -I$(LIB_SRC)/TurbulenceModels/incompressible/lnInclude \
     -I$(LIB_SRC)/triSurface/lnInclude \
+    -I$(SOWFA_DIR)/src/ABLForcing/lnInclude \
+    -I$(SOWFA_DIR)/src/meshTools/lnInclude \
+    -I$(SOWFA_DIR)/src/boundaryConditions/lnInclude \
+    -I$(SOWFA_DIR)/src/turbineModels/turbineModelsStandard/lnInclude \
     $(ADAPTER_PKG_CONFIG_CFLAGS) \
     -I../ \
     $(ADAPTER_PREP_FLAGS)
 
 LIB_LIBS = \
+    -L$(SOWFA_LIBBIN) \
     -lfiniteVolume \
+    -lfvOptions \
+    -lsampling \
     -lmeshTools \
+    -lturbulenceModels \
     -lcompressibleTurbulenceModels \
     -lincompressibleTurbulenceModels \
+    -lincompressibleTransportModels \
     -limmiscibleIncompressibleTwoPhaseMixture \
+    -lSOWFAABLForcing \
+    -lSOWFAmeshTools \
+    -lSOWFAboundaryConditions \
+    -lSOWFATurbineModelsStandard \
     $(ADAPTER_PKG_CONFIG_LIBS) \
     -lprecice

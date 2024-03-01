@@ -8,28 +8,6 @@ Read more details in the issue [#52: Releases and versioning](https://github.com
 
 <!-- markdownlint-configure-file {"MD024": { "siblings_only": true } } -->
 
-## [v1.2.3] 2023-06-14
-
-### Fixed
-
-- Fixed incorrect reading and writing of the FSI-related data buffers, if multiple patches are combined in an interface mesh [commit 846affd](https://github.com/precice/openfoam-adapter/commit/846affdd00ea8024cee98f34d8ad4205fdc83c5f).
-
-## [v1.2.2] 2023-01-03
-
-### Changed
-
-- Updated the default OpenFOAM version in documentation and CI to v2212 [commit 9b2b2](https://github.com/precice/openfoam-adapter/commit/9b2b27fb6d0c9506c109e5a714d64607d4f73565).
-
-### Fixed
-
-- Fixed compatibility with OpenFOAM v2212, removing an unneeded `refCast` [commit e40fe](https://github.com/precice/openfoam-adapter/commit/e40fec1681a85d5147faa3100d21d28c2e205004).
-
-## [v1.2.1] 2022-12-15
-
-### Fixed
-
-- Replaced a `std::make_unique` by `new` in order to remain C++11 compatible and support older compilers [#264](https://github.com/precice/openfoam-adapter/pull/264).
-
 ## [v1.2.0] 2022-11-14
 
 ### Added

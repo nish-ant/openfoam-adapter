@@ -57,11 +57,13 @@ SourceFiles
 #ifndef PRECICEADAPTERFUNCTIONOBJECT_H
 #define PRECICEADAPTERFUNCTIONOBJECT_H
 
-// OpenFOAM header files
+//- OpenFOAM header files
 #include "fvMeshFunctionObject.H"
-#include "clockValue.H"
+#ifdef ADAPTER_ENABLE_TIMINGS
+// #include "clockValue.H" // Not available in OpenFOAM.org, do not enable
+#endif
 
-// Main adapter header file
+//- Main adapter header file
 #include "Adapter.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
@@ -78,7 +80,7 @@ namespace functionObjects
 class preciceAdapterFunctionObject
 : public fvMeshFunctionObject
 {
-    // Private data
+    //- Private data
 
 #ifdef ADAPTER_ENABLE_TIMINGS
     //- Cumulative time spent in the complete adapter function object (including preCICE calls)
@@ -90,7 +92,7 @@ class preciceAdapterFunctionObject
     //- Adapter's main class instance
     preciceAdapter::Adapter adapter_;
 
-    // Private Member Functions
+    //- Private Member Functions
 
     //- No copy construct
     preciceAdapterFunctionObject(const preciceAdapterFunctionObject&) = delete;
@@ -104,7 +106,7 @@ public:
     TypeName("preciceAdapterFunctionObject");
 
 
-    // Constructors
+    //- Constructors
 
     //- Construct from Time and dictionary
     preciceAdapterFunctionObject(
@@ -132,17 +134,17 @@ public:
     bool write() final;
 
     //- Called at the end of Time::adjustDeltaT() if adjustTime is true
-    bool adjustTimeStep() final;
+    bool setTimeStep() final;
 
     /*
-        // NOTE: If you add a new module that needs to execute methods
-        // whenever the mesh is updated or its points moved,
-        // you may put your calls inside the following methods.
+        //- NOTE: If you add a new module that needs to execute methods
+        //- whenever the mesh is updated or its points moved,
+        //- you may put your calls inside the following methods.
 
-        // Update for changes of mesh
+        //- Update for changes of mesh
         void updateMesh(const mapPolyMesh& mpm) final;
 
-        // Update for changes of mesh
+        //- Update for changes of mesh
         void movePoints(const polyMesh& mesh) final;
     */
 };
@@ -150,8 +152,8 @@ public:
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-} // End namespace functionObjects
-} // End namespace Foam
+} //- End namespace functionObjects
+} //- End namespace Foam
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 

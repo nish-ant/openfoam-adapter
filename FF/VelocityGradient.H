@@ -25,7 +25,7 @@ public:
         const std::string nameU);
 
     //- Write the velocity gradient values into the buffer
-    std::size_t write(double* buffer, bool meshConnectivity, const unsigned int dim) final;
+    void write(double* buffer, bool meshConnectivity, const unsigned int dim) final;
 
     //- Read the velocity gradient values from the buffer
     void read(double* buffer, const unsigned int dim) final;
@@ -40,7 +40,7 @@ public:
 }
 
 // NOTE: In order to couple another variable, you need to add another
-// subclass of the CouplingDataUser. Take this file and Velocity.C
+// subclass of the CouplingDataUser. Take this file and VelocityGradient.C
 // as an example and look for more notes in the Adapter.C and Adapter.H.
 // Essentially, the new class needs to implement a constructor (which also
 // sets the dataType_) and implement the write() and read() methods.

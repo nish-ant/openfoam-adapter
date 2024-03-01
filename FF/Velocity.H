@@ -4,7 +4,6 @@
 #include "CouplingDataUser.H"
 
 #include "fvCFD.H"
-#include "cellSet.H"
 
 namespace preciceAdapter
 {
@@ -18,21 +17,15 @@ class Velocity : public CouplingDataUser
 private:
     //- Velocity field
     Foam::volVectorField* U_;
-    //- Face flux field
-    Foam::surfaceScalarField* phi_;
-    //- Correct velocity by face flux
-    bool fluxCorrection_ = false;
 
 public:
     //- Constructor
     Velocity(
         const Foam::fvMesh& mesh,
-        const std::string nameU,
-        const std::string namePhi,
-        bool fluxCorrection = false);
+        const std::string nameU);
 
     //- Write the velocity values into the buffer
-    std::size_t write(double* buffer, bool meshConnectivity, const unsigned int dim);
+    void write(double* buffer, bool meshConnectivity, const unsigned int dim);
 
     //- Read the velocity values from the buffer
     void read(double* buffer, const unsigned int dim);

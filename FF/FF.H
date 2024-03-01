@@ -5,13 +5,24 @@
 
 #include "FF/Velocity.H"
 #include "FF/Pressure.H"
-#include "FF/Temperature.H"
-#include "FF/Alpha.H"
-#include "FF/PressureGradient.H"
 #include "FF/VelocityGradient.H"
+#include "FF/PressureGradient.H"
+
+#include "FF/PressureRgh.H"
+#include "FF/Temperature.H"
+#include "FF/EddyViscosity.H"
+#include "FF/KinematicThermalConductivity.H"
+#include "FF/TKE.H"
+#include "FF/TurbulentDissipationRate.H"
+#include "FF/TurbulentSpecificDissipationRate.H"
+
+#include "FF/PressureRghGradient.H"
 #include "FF/TemperatureGradient.H"
-#include "FF/AlphaGradient.H"
-#include "FF/Phi.H"
+#include "FF/EddyViscosityGradient.H"
+#include "FF/KinematicThermalConductivityGradient.H"
+#include "FF/TKEGradient.H"
+#include "FF/TurbulentDissipationRateGradient.H"
+#include "FF/TurbulentSpecificDissipationRateGradient.H"
 
 #include "fvCFD.H"
 
@@ -38,17 +49,26 @@ protected:
     //- Name of the pressure field
     std::string nameP_ = "p";
 
+    //- Name of the pressureRgh field
+    std::string namePRgh_ = "p_rgh";
+
     //- Name of the temperature field
     std::string nameT_ = "T";
 
-    //- Name of the phase variable (alpha) field
-    std::string nameAlpha_ = "alpha";
+    //- Name of the eddy viscosity field
+    std::string nameNut_ = "nut";
 
-    //- Name of the face flux field
-    std::string namePhi_ = "phi";
+    //- Name of the kinematic thermal conductivity field
+    std::string nameKappat_ = "kappat";
 
-    //- Flux correction of velocity
-    bool fluxCorrection_ = false;
+    //- Name of the TKE field
+    std::string nameK_ = "k";
+
+    //- Name of the turbulent dissipation rate field
+    std::string nameEpsilon_ = "epsilon";
+
+    //- Name of the turbulent specific dissipation rate field
+    std::string nameOmega_ = "omega";
 
     //- Determine the solver type
     std::string determineSolverType();

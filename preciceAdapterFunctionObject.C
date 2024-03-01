@@ -24,7 +24,7 @@ License
 
 #include "preciceAdapterFunctionObject.H"
 
-// OpenFOAM header files
+//- OpenFOAM header files
 #include "Time.H"
 #include "fvMesh.H"
 #include "addToRunTimeSelectionTable.H"
@@ -51,10 +51,10 @@ Foam::functionObjects::preciceAdapterFunctionObject::preciceAdapterFunctionObjec
   adapter_(runTime, mesh_)
 {
 
-#if (defined OPENFOAM && (OPENFOAM >= 1712)) || (defined OPENFOAM_PLUS && (OPENFOAM_PLUS >= 1712))
-    // Patch for issue #27: warning "MPI was already finalized" while
-    // running in serial. This only affects openfoam.com, while initNull()
-    // does not exist in openfoam.org.
+#if (defined OPENFOAM_PLUS && (OPENFOAM_PLUS >= 1712)) || (defined OPENFOAM && (OPENFOAM >= 1806))
+    //- Patch for issue #27: warning "MPI was already finalized" while
+    //- running in serial. This only affects openfoam.com, while initNull()
+    //- does not exist in openfoam.org.
     UPstream::initNull();
 #endif
 
@@ -80,7 +80,7 @@ Foam::functionObjects::preciceAdapterFunctionObject::~preciceAdapterFunctionObje
 bool Foam::functionObjects::preciceAdapterFunctionObject::read(const dictionary& dict)
 {
 #ifdef ADAPTER_ENABLE_TIMINGS
-    // Save the current wall clock time stamp to the clock
+    //- Save the current wall clock time stamp to the clock
     clockValue clock;
     clock.update();
 #endif
@@ -88,8 +88,8 @@ bool Foam::functionObjects::preciceAdapterFunctionObject::read(const dictionary&
     adapter_.configure();
 
 #ifdef ADAPTER_ENABLE_TIMINGS
-    // Accumulate the time in this section into a global timer.
-    // Same in all function object methods.
+    //- Accumulate the time in this section into a global timer.
+    //- Same in all function object methods.
     timeInAll_ += clock.elapsed();
     timeInSetup_ = clock.elapsed();
 #endif
@@ -139,14 +139,14 @@ bool Foam::functionObjects::preciceAdapterFunctionObject::write()
     return true;
 }
 
-bool Foam::functionObjects::preciceAdapterFunctionObject::adjustTimeStep()
+bool Foam::functionObjects::preciceAdapterFunctionObject::setTimeStep()
 {
 #ifdef ADAPTER_ENABLE_TIMINGS
     clockValue clock;
     clock.update();
 #endif
 
-    adapter_.adjustTimeStep();
+    adapter_.setTimeStep();
 
 #ifdef ADAPTER_ENABLE_TIMINGS
     timeInAll_ += clock.elapsed();

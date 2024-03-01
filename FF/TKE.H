@@ -1,5 +1,5 @@
-#ifndef FF_TEMPERATURE_GRADIENT_H
-#define FF_TEMPERATURE_GRADIENT_H
+#ifndef FF_TKE_H
+#define FF_TKE_H
 
 #include "CouplingDataUser.H"
 
@@ -10,24 +10,24 @@ namespace preciceAdapter
 namespace FF
 {
 
-//- Class that writes and reads temperature gradient
-class TemperatureGradient : public CouplingDataUser
+//- Class that writes and reads TKE
+class TKE : public CouplingDataUser
 {
 
 private:
-    //- Temperature field
-    Foam::volScalarField* T_;
+    //- TKE field
+    Foam::volScalarField* k_;
 
 public:
     //- Constructor
-    TemperatureGradient(
+    TKE(
         const Foam::fvMesh& mesh,
-        const std::string nameT);
+        const std::string nameK);
 
-    //- Write the temperature gradient values into the buffer
+    //- Write the TKE values into the buffer
     void write(double* buffer, bool meshConnectivity, const unsigned int dim);
 
-    //- Read the temperature gradient values from the buffer
+    //- Read the TKE values from the buffer
     void read(double* buffer, const unsigned int dim);
 
     bool isLocationTypeSupported(const bool meshConnectivity) const final;

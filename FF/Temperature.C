@@ -12,7 +12,7 @@ preciceAdapter::FF::Temperature::Temperature(
     dataType_ = scalar;
 }
 
-std::size_t preciceAdapter::FF::Temperature::write(double* buffer, bool meshConnectivity, const unsigned int dim)
+void preciceAdapter::FF::Temperature::write(double* buffer, bool meshConnectivity, const unsigned int dim)
 {
     int bufferIndex = 0;
 
@@ -20,18 +20,14 @@ std::size_t preciceAdapter::FF::Temperature::write(double* buffer, bool meshConn
     for (uint j = 0; j < patchIDs_.size(); j++)
     {
         int patchID = patchIDs_.at(j);
-        scalarField gradientPatch((T_->boundaryFieldRef()[patchID])
-                                      .snGrad());
 
         // For every cell of the patch
         forAll(T_->boundaryFieldRef()[patchID], i)
         {
-            // Copy the pressure into the buffer
-            buffer[bufferIndex++] =
-                T_->boundaryFieldRef()[patchID][i];
+            // Copy the temperature into the buffer
+            buffer[bufferIndex++] = T_->boundaryFieldRef()[patchID][i];
         }
     }
-    return bufferIndex;
 }
 
 void preciceAdapter::FF::Temperature::read(double* buffer, const unsigned int dim)
@@ -42,9 +38,11 @@ void preciceAdapter::FF::Temperature::read(double* buffer, const unsigned int di
     for (uint j = 0; j < patchIDs_.size(); j++)
     {
         int patchID = patchIDs_.at(j);
+
         // For every cell of the patch
         forAll(T_->boundaryFieldRef()[patchID], i)
         {
+            // Set the temperature as the buffer value
             T_->boundaryFieldRef()[patchID][i] = buffer[bufferIndex++];
         }
     }
